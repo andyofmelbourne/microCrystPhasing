@@ -1136,8 +1136,8 @@ def matrify(xmask, func, xmask_imag = None, bmask = None, dt = np.float64, progr
     N = 2*np.count_nonzero(bmask)
     M = np.count_nonzero(xmask) + np.count_nonzero(xmask_imag)
 
-    A      = np.zeros((N,M), dtype = dt)
-    xvect  = np.zeros((M), dtype=np.bool)
+    A     = np.zeros((N,M), dtype = dt)
+    xvect = np.zeros((M), dtype=np.bool)
 
     if progress :
         count = 0
@@ -1356,3 +1356,29 @@ class test_retrievals(object):
         self.Exit  = (self.Sample + 1.0) * self.Illum 
         self.image = np.square(np.abs(fft2(self.Exit)))
         self.N     = N
+
+
+def update_progress(progress, algorithm, i, emod, esup):
+    barLength = 15 # Modify this to change the length of the progress bar
+    status = ""
+    if isinstance(progress, int):
+        progress = float(progress)
+    if not isinstance(progress, float):
+        progress = 0
+        status = "error: progress var must be float\r\n"
+    if progress < 0:
+        progress = 0
+        status = "Halt...\r\n"
+    if progress >= 1:
+        progress = 1
+        status = "Done...\r\n"
+    block = int(round(barLength*progress))
+    text = "\r{0}: [{1}] {2}% {3} {4} {5} {6} {7}".format(algorithm, "#"*block + "-"*(barLength-block), int(progress*100), i, emod, esup, status, " " * 5) # this last bit clears the line
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
+
+def HIO(exit, Pmod, Psup, beta=1.):
+    out = Pmod(exit)
+    out = exit + beta * Psup( (1+1/beta)*out - 1/beta * exit ) - beta * out  
+    return out
